@@ -1,0 +1,8 @@
+{
+    "pluginDesc": {
+        "message": "网页商品爬虫"
+    },
+    "menuStart": {
+        "message": "抓取"
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "pluginDesc": {
+        "message": "web spider"
+    },
+    "menuStart": {
+        "message": "start spider"
+    }
+}

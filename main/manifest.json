@@ -1,0 +1,48 @@
+{
+    "manifest_version": 2,
+    "name": "shopSpider",
+    "version": "1.0.0",
+    "description": "__MSG_pluginDesc__",
+    "icons":
+    {
+        "16": "images/icon.png",
+        "48": "images/icon.png",
+        "128": "images/icon.png"
+    },
+    "background":
+    {
+        "scripts": ["dist/background.js"],
+        "persistent": false
+    },
+    "browser_action": 
+    {
+        "default_icon": "images/icon.png",
+        "default_title": "__MSG_pluginDesc__",
+        "default_popup": "popup.html"
+    },
+    "content_scripts": 
+    [
+        {
+            "matches": ["<all_urls>"],
+            "js": ["dist/content-script.js"],
+            "run_at": "document_end"
+        }
+    ],
+    "permissions":
+    [
+        "contextMenus",
+        "tabs",
+        "notifications",
+        "storage",
+        "downloads",
+        "http://*/*",
+        "https://*/*"
+    ],
+    "homepage_url": "http://www.zodream.cn",
+    "options_ui":
+    {
+        "page": "options.html",
+        "chrome_style": true
+    },
+    "default_locale": "zh_CN"
+}

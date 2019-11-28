@@ -1,8 +1,7 @@
-declare var chrome: any;
-
 interface IFile {
-    url: string,
-    filename: string
+    url?: string,
+    filename: string,
+    content?: any
 }
 
 function getCurrentTabId(callback: (id?: number) => void) {
@@ -26,12 +25,21 @@ function batchDownload(items: IFile[], folder?: string) {
             return;
         }
         let item = items[i];
-        download(item.url, folder ? folder + '/' + item.filename : item.filename, () => {
+        
+        download(item.url ? item.url : createUrl(item.content), folder ? folder + '/' + item.filename : item.filename, () => {
             i ++;
             callback();
         });
     };
     callback();
+}
+
+function createUrl(content: string): string {
+    if (typeof content === 'object') {
+        content = JSON.stringify(content);
+    }
+    let blob = new Blob([content]);
+    return URL.createObjectURL(blob);
 }
 
 let filename_map: {[key: number]: string} = {};
@@ -54,14 +62,14 @@ function startSpider() {
     sendMessageToContentScript({cmd: 'start_spider'});
 }
 
-chrome.runtime.onMessage.addListener(function(request: any, sender: any, sendResponse: (data: any) => void)
+chrome.runtime.onMessage.addListener(function(request, _, sendResponse)
 {
     if (request.cmd === 'batch_download') {
         batchDownload(request.files, request.folder);
     } else if (request.cmd === 'single_download') {
         download(request.url, request.filename);
     }
-    sendResponse('我是后台，我已收到你的消息：' + JSON.stringify(request));
+    sendResponse('');
 });
 
 // chrome.runtime.lastError.addListener(function() {
@@ -69,7 +77,7 @@ chrome.runtime.onMessage.addListener(function(request: any, sender: any, sendRes
     
 // });
 
-chrome.downloads.onDeterminingFilename.addListener(function(downloadItem: any, suggest: (suggestion: any) => void) {
+chrome.downloads.onDeterminingFilename.addListener(function(downloadItem, suggest) {
     if (!filename_map.hasOwnProperty(downloadItem.id)) {
         suggest({
             filename: downloadItem.filename
@@ -93,7 +101,7 @@ chrome.contextMenus.create({
     title: chrome.i18n.getMessage('menuStart'),
 });
 
-chrome.contextMenus.onClicked.addListener(function(info: any, tab: any) {
+chrome.contextMenus.onClicked.addListener(function(info) {
     switch(info.menuItemId){
         case 'start-spider':
             startSpider();   

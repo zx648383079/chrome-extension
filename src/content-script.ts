@@ -1,7 +1,8 @@
-chrome.runtime.onMessage.addListener(function(request: any, sender: any, sendResponse: (data: any) => void)
+chrome.runtime.onMessage.addListener(function(request, _, sendResponse)
 {
 	if (request.cmd === 'start_spider') {
         startSpider();
+        sendResponse('');
     } else {
 		sendResponse('我收到你的消息了：'+JSON.stringify(request));
 	}
@@ -16,24 +17,21 @@ function sendMessage(cmd: string| any, data?: any) {
     });
 }
 
-function createUrl(content: string): string {
-    var blob = new Blob([content]);
-    return URL.createObjectURL(blob);
-}
-
 function startSpider() {
-    console.log(getSpiderData());
-    
-    return;
+    let data = getSpiderData();
+    if (!data) {
+        return;
+    }
+    ajax('http://zodream.localhost/shop/admin/goods/import', data);
     sendMessage({
         cmd: 'batch_download',
         files: [
             {
-                url: createUrl('1231231'),
-                filename: '1.json',
+                content: data,
+                filename: data.id + '.json',
             }
         ],
-        folder: 'test'
+        folder: 'shop_goods'
     });
 }
 
@@ -62,17 +60,17 @@ function getTB() {
     const title = Zo<HTMLDivElement>('#J_Title h3', box)?.innerText;
     const description = Zo<HTMLDivElement>('.tb-subtitle', box)?.innerText;
     const price = Zo<HTMLDivElement>('#J_PromoPriceNum', box)?.innerText.split('-')[0];
-    let spec: any[] = [];
+    let attrs: any[] = [];
     ZoR<HTMLDivElement>('#J_isku .tb-prop', box)?.forEach(item => {
         const name = Zo<HTMLDivElement>('.tb-property-type', item)?.innerText;
         if (!name) {
             return;
         }
-        let attrs: string[] = [];
+        let items: string[] = [];
         ZoR<HTMLSpanElement>('li a', item).forEach(span => {
-            attrs.push(span.innerText);
+            items.push(span.innerText);
         });
-        spec.push({name, attrs});
+        attrs.push({name, items});
     });
     const content = Zo<HTMLDivElement>('#description .content')?.innerHTML;
     let images: string[] = [];
@@ -80,7 +78,14 @@ function getTB() {
         images.push(img.src);
     });
     const thumb = Zo<HTMLImageElement>('#J_ImgBooth')?.src;
-    return {id, title, description, price, thumb, images, spec, content};
+    let properties: any[] = [];
+    ZoR<HTMLLIElement>('#attributes li').forEach(item => {
+        const args = item.innerText.replace('&nbsp;', '').split(':');
+        if (args.length > 1) {
+            properties.push({name: args[0], value: args[1]});
+        }
+    });
+    return {id, title, description, price, thumb, images, attrs, properties, content};
 }
 
 function getTM() {
@@ -93,17 +98,17 @@ function getTM() {
     const title = Zo<HTMLDivElement>('.tb-detail-hd h1', box)?.innerText;
     const description = Zo<HTMLDivElement>('.tb-detail-hd .newp', box)?.innerText;
     const price = Zo<HTMLDivElement>('.tm-price', box)?.innerText.split('-')[0];
-    let spec = [];
+    let attrs: any[] = [];
     ZoR<HTMLDivElement>('.tb-sku .tm-sale-prop', box)?.forEach(item => {
         const name = Zo<HTMLDivElement>('.tb-metatit', item)?.innerText;
         if (!name) {
             return;
         }
-        let attrs: string[] = [];
+        let items: string[] = [];
         ZoR<HTMLSpanElement>('li span', item).forEach(span => {
-            attrs.push(span.innerText);
+            items.push(span.innerText);
         });
-        spec.push({name, attrs});
+        attrs.push({name, items});
     });
     const content = Zo<HTMLDivElement>('#description .content')?.innerHTML;
     let images: string[] = [];
@@ -111,7 +116,15 @@ function getTM() {
         images.push(img.src);
     });
     const thumb = Zo<HTMLImageElement>('#J_ImgBooth')?.src;
-    return {id, title, description, price, thumb, images, spec, content};
+    const brand = Zo<HTMLDivElement>('#J_BrandAttr .J_EbrandLogo')?.innerText;
+    let properties: any[] = [];
+    ZoR<HTMLLIElement>('#J_AttrUL li').forEach(item => {
+        const args = item.innerText.replace('&nbsp;', '').split(':');
+        if (args.length > 1) {
+            properties.push({name: args[0], value: args[1]});
+        }
+    });
+    return {id, title, description, price, thumb, images, attrs, brand, properties, content};
 }
 
 function getJD() {
@@ -121,23 +134,32 @@ function getJD() {
     const price = Zo<HTMLDivElement>('.p-price .price')?.innerText.split('-')[0];
     const content = Zo<HTMLDivElement>('#J-detail-content')?.innerHTML;
     const thumb = Zo<HTMLImageElement>('#spec-img')?.src;
-    let images = [];
+    let images: string[] = [];
     ZoR<HTMLImageElement>('#spec-list li img').forEach(item => {
         images.push(item.src);
     });
-    let spec = [];
+    let attrs: any[] = [];
     ZoR<HTMLDivElement>('#choose-attrs .p-choose').forEach(item => {
         const name = Zo<HTMLDivElement>('.dt', item)?.innerText.trim();
         if (!name) {
             return;
         }
-        let attrs: string[] = [];
+        let items: string[] = [];
         ZoR<HTMLDivElement>('.item a', item).forEach(span => {
-            attrs.push(span.innerText);
+            items.push(span.innerText);
         });
-        spec.push({name, attrs});
+        attrs.push({name, items});
     });
-    return {id, title, description, price, thumb, images, spec, content};
+    const brand = Zo<HTMLDivElement>('#parameter-brand a')?.innerText;
+    let properties: any[] = [];
+    ZoR<HTMLLIElement>('#detail .parameter2 li').forEach(item => {
+        const args = item.innerText.split('：');
+        if (args.length > 1) {
+            properties.push({name: args[0], value: args[1]});
+        }
+    });
+    const category = Zo<HTMLLinkElement>('#crumb-wrap .first')?.innerText;
+    return {id, title, description, price, thumb, images, attrs, brand, category, properties, content};
 }
 
 function Zo<T>(tag: string, parent: Document|HTMLElement = document): T {
@@ -146,4 +168,14 @@ function Zo<T>(tag: string, parent: Document|HTMLElement = document): T {
 
 function ZoR<T>(tag: string, parent: Document|HTMLElement = document): T[] {
     return parent.querySelectorAll(tag) as any;
+}
+
+function ajax(url: string, data: any) {
+    const xhr = new XMLHttpRequest();
+    xhr.open('post', url);
+    xhr.setRequestHeader('content-type', 'application/json');
+    xhr.send(JSON.stringify(data));
+    xhr.onreadystatechange = function() {
+        console.log(xhr.status);
+    };
 }

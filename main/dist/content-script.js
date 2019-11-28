@@ -1,7 +1,8 @@
 "use strict";
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request, _, sendResponse) {
     if (request.cmd === 'start_spider') {
         startSpider();
+        sendResponse('');
     }
     else {
         sendResponse('我收到你的消息了：' + JSON.stringify(request));
@@ -15,22 +16,21 @@ function sendMessage(cmd, data) {
         console.log('收到来自后台的回复：' + response);
     });
 }
-function createUrl(content) {
-    var blob = new Blob([content]);
-    return URL.createObjectURL(blob);
-}
 function startSpider() {
-    console.log(getSpiderData());
-    return;
+    var data = getSpiderData();
+    if (!data) {
+        return;
+    }
+    ajax('http://zodream.localhost/shop/admin/goods/import', data);
     sendMessage({
         cmd: 'batch_download',
         files: [
             {
-                url: createUrl('1231231'),
-                filename: '1.json'
+                content: data,
+                filename: data.id + '.json'
             }
         ],
-        folder: 'test'
+        folder: 'shop_goods'
     });
 }
 function getSpiderData() {
@@ -57,18 +57,18 @@ function getTB() {
     var title = (_a = Zo('#J_Title h3', box)) === null || _a === void 0 ? void 0 : _a.innerText;
     var description = (_b = Zo('.tb-subtitle', box)) === null || _b === void 0 ? void 0 : _b.innerText;
     var price = (_c = Zo('#J_PromoPriceNum', box)) === null || _c === void 0 ? void 0 : _c.innerText.split('-')[0];
-    var spec = [];
+    var attrs = [];
     (_d = ZoR('#J_isku .tb-prop', box)) === null || _d === void 0 ? void 0 : _d.forEach(function (item) {
         var _a;
         var name = (_a = Zo('.tb-property-type', item)) === null || _a === void 0 ? void 0 : _a.innerText;
         if (!name) {
             return;
         }
-        var attrs = [];
+        var items = [];
         ZoR('li a', item).forEach(function (span) {
-            attrs.push(span.innerText);
+            items.push(span.innerText);
         });
-        spec.push({ name: name, attrs: attrs });
+        attrs.push({ name: name, items: items });
     });
     var content = (_e = Zo('#description .content')) === null || _e === void 0 ? void 0 : _e.innerHTML;
     var images = [];
@@ -76,10 +76,17 @@ function getTB() {
         images.push(img.src);
     });
     var thumb = (_f = Zo('#J_ImgBooth')) === null || _f === void 0 ? void 0 : _f.src;
-    return { id: id, title: title, description: description, price: price, thumb: thumb, images: images, spec: spec, content: content };
+    var properties = [];
+    ZoR('#attributes li').forEach(function (item) {
+        var args = item.innerText.replace('&nbsp;', '').split(':');
+        if (args.length > 1) {
+            properties.push({ name: args[0], value: args[1] });
+        }
+    });
+    return { id: id, title: title, description: description, price: price, thumb: thumb, images: images, attrs: attrs, properties: properties, content: content };
 }
 function getTM() {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g;
     var url = window.location.href;
     var id = url.replace(/^.+id\=/i, '').replace(/&.+$/, '');
     var box = document.getElementById('detail');
@@ -89,18 +96,18 @@ function getTM() {
     var title = (_a = Zo('.tb-detail-hd h1', box)) === null || _a === void 0 ? void 0 : _a.innerText;
     var description = (_b = Zo('.tb-detail-hd .newp', box)) === null || _b === void 0 ? void 0 : _b.innerText;
     var price = (_c = Zo('.tm-price', box)) === null || _c === void 0 ? void 0 : _c.innerText.split('-')[0];
-    var spec = [];
+    var attrs = [];
     (_d = ZoR('.tb-sku .tm-sale-prop', box)) === null || _d === void 0 ? void 0 : _d.forEach(function (item) {
         var _a;
         var name = (_a = Zo('.tb-metatit', item)) === null || _a === void 0 ? void 0 : _a.innerText;
         if (!name) {
             return;
         }
-        var attrs = [];
+        var items = [];
         ZoR('li span', item).forEach(function (span) {
-            attrs.push(span.innerText);
+            items.push(span.innerText);
         });
-        spec.push({ name: name, attrs: attrs });
+        attrs.push({ name: name, items: items });
     });
     var content = (_e = Zo('#description .content')) === null || _e === void 0 ? void 0 : _e.innerHTML;
     var images = [];
@@ -108,10 +115,18 @@ function getTM() {
         images.push(img.src);
     });
     var thumb = (_f = Zo('#J_ImgBooth')) === null || _f === void 0 ? void 0 : _f.src;
-    return { id: id, title: title, description: description, price: price, thumb: thumb, images: images, spec: spec, content: content };
+    var brand = (_g = Zo('#J_BrandAttr .J_EbrandLogo')) === null || _g === void 0 ? void 0 : _g.innerText;
+    var properties = [];
+    ZoR('#J_AttrUL li').forEach(function (item) {
+        var args = item.innerText.replace('&nbsp;', '').split(':');
+        if (args.length > 1) {
+            properties.push({ name: args[0], value: args[1] });
+        }
+    });
+    return { id: id, title: title, description: description, price: price, thumb: thumb, images: images, attrs: attrs, brand: brand, properties: properties, content: content };
 }
 function getJD() {
-    var _a, _b, _c, _d, _e;
+    var _a, _b, _c, _d, _e, _f, _g;
     var id = window.location.pathname.replace('/', '').replace(/\..+$/, '');
     var title = (_a = Zo('.sku-name')) === null || _a === void 0 ? void 0 : _a.innerText;
     var description = (_b = Zo('.news')) === null || _b === void 0 ? void 0 : _b.innerText;
@@ -122,20 +137,29 @@ function getJD() {
     ZoR('#spec-list li img').forEach(function (item) {
         images.push(item.src);
     });
-    var spec = [];
+    var attrs = [];
     ZoR('#choose-attrs .p-choose').forEach(function (item) {
         var _a;
         var name = (_a = Zo('.dt', item)) === null || _a === void 0 ? void 0 : _a.innerText.trim();
         if (!name) {
             return;
         }
-        var attrs = [];
+        var items = [];
         ZoR('.item a', item).forEach(function (span) {
-            attrs.push(span.innerText);
+            items.push(span.innerText);
         });
-        spec.push({ name: name, attrs: attrs });
+        attrs.push({ name: name, items: items });
     });
-    return { id: id, title: title, description: description, price: price, thumb: thumb, images: images, spec: spec, content: content };
+    var brand = (_f = Zo('#parameter-brand a')) === null || _f === void 0 ? void 0 : _f.innerText;
+    var properties = [];
+    ZoR('#detail .parameter2 li').forEach(function (item) {
+        var args = item.innerText.split('：');
+        if (args.length > 1) {
+            properties.push({ name: args[0], value: args[1] });
+        }
+    });
+    var category = (_g = Zo('#crumb-wrap .first')) === null || _g === void 0 ? void 0 : _g.innerText;
+    return { id: id, title: title, description: description, price: price, thumb: thumb, images: images, attrs: attrs, brand: brand, category: category, properties: properties, content: content };
 }
 function Zo(tag, parent) {
     if (parent === void 0) { parent = document; }
@@ -144,4 +168,13 @@ function Zo(tag, parent) {
 function ZoR(tag, parent) {
     if (parent === void 0) { parent = document; }
     return parent.querySelectorAll(tag);
+}
+function ajax(url, data) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('post', url);
+    xhr.setRequestHeader('content-type', 'application/json');
+    xhr.send(JSON.stringify(data));
+    xhr.onreadystatechange = function () {
+        console.log(xhr.status);
+    };
 }

@@ -18,12 +18,19 @@ function batchDownload(items, folder) {
             return;
         }
         var item = items[i];
-        download(item.url, folder ? folder + '/' + item.filename : item.filename, function () {
+        download(item.url ? item.url : createUrl(item.content), folder ? folder + '/' + item.filename : item.filename, function () {
             i++;
             callback();
         });
     };
     callback();
+}
+function createUrl(content) {
+    if (typeof content === 'object') {
+        content = JSON.stringify(content);
+    }
+    var blob = new Blob([content]);
+    return URL.createObjectURL(blob);
 }
 var filename_map = {};
 function download(url, filename, success) {
@@ -42,14 +49,14 @@ function download(url, filename, success) {
 function startSpider() {
     sendMessageToContentScript({ cmd: 'start_spider' });
 }
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+chrome.runtime.onMessage.addListener(function (request, _, sendResponse) {
     if (request.cmd === 'batch_download') {
         batchDownload(request.files, request.folder);
     }
     else if (request.cmd === 'single_download') {
         download(request.url, request.filename);
     }
-    sendResponse('我是后台，我已收到你的消息：' + JSON.stringify(request));
+    sendResponse('');
 });
 chrome.downloads.onDeterminingFilename.addListener(function (downloadItem, suggest) {
     if (!filename_map.hasOwnProperty(downloadItem.id)) {
@@ -72,7 +79,7 @@ chrome.contextMenus.create({
     id: 'start-spider',
     title: chrome.i18n.getMessage('menuStart')
 });
-chrome.contextMenus.onClicked.addListener(function (info, tab) {
+chrome.contextMenus.onClicked.addListener(function (info) {
     switch (info.menuItemId) {
         case 'start-spider':
             startSpider();

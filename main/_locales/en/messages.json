@@ -2,7 +2,13 @@
     "pluginDesc": {
         "message": "web spider"
     },
-    "menuStart": {
-        "message": "start spider"
+    "startGoods": {
+        "message": "spider goods"
+    },
+    "startExam": {
+        "message": "spider exam"
+    },
+    "collect": {
+        "message": "collect"
     }
 }

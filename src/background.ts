@@ -4,9 +4,9 @@ interface IFile {
     content?: any
 }
 
-function getCurrentTabId(callback: (id?: number) => void) {
+function getCurrentTabId(callback: (id: number) => void) {
     chrome.tabs.query({active: true, currentWindow: true}, function(tabs: any[]) {
-        callback && callback(tabs.length ? tabs[0].id: null);
+        callback && callback(tabs.length ? tabs[0].id: 0);
     });
 }
 function sendMessageToContentScript(message: any, callback?: (res: any) => void) {
@@ -58,8 +58,12 @@ function download(url: string, filename: string, success?: () => void) {
     });
 }
 
-function startSpider() {
-    sendMessageToContentScript({cmd: 'start_spider'});
+function startGoods() {
+    sendMessageToContentScript({cmd: 'start_goods'});
+}
+
+function collect() {
+    sendMessageToContentScript({cmd: 'collect'});
 }
 
 chrome.runtime.onMessage.addListener(function(request, _, sendResponse)
@@ -94,17 +98,45 @@ chrome.downloads.onDeterminingFilename.addListener(function(downloadItem, sugges
     delete filename_map[downloadItem.id];
 });
 
+// chrome.runtime.onInstalled.addListener(function(){
+//     chrome.declarativeContent.onPageChanged.removeRules(undefined, function(){
+//         chrome.declarativeContent.onPageChanged.addRules([
+//             {
+//                 conditions: [
+//                     new chrome.declarativeContent.PageStateMatcher({pageUrl: {urlContains: 'jd.com'}}),
+//                     new chrome.declarativeContent.PageStateMatcher({pageUrl: {urlContains: 'tmall.com'}}),
+//                     new chrome.declarativeContent.PageStateMatcher({pageUrl: {urlContains: 'taobao.com'}}),
+//                 ],
+//                 actions: [new chrome.declarativeContent.ShowPageAction()]
+//             }
+//         ]);
+//     });
+// });
+
 chrome.contextMenus.removeAll();
 
 chrome.contextMenus.create({
-    id: 'start-spider',
-    title: chrome.i18n.getMessage('menuStart'),
+    id: 'start-goods',
+    title: chrome.i18n.getMessage('startGoods'),
 });
-
+chrome.contextMenus.create({
+    id: 'start-exam',
+    title: chrome.i18n.getMessage('startExam'),
+});
+chrome.contextMenus.create({
+    id: 'collect',
+    title: chrome.i18n.getMessage('collect'),
+});
 chrome.contextMenus.onClicked.addListener(function(info) {
     switch(info.menuItemId){
-        case 'start-spider':
-            startSpider();   
+        case 'start-goods':
+            startGoods();   
+            break;
+        case 'start-exam':
+            startExam();   
+            break;
+        case 'collect':
+            collect();   
             break;
     }
 });

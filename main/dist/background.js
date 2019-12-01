@@ -1,7 +1,7 @@
 "use strict";
 function getCurrentTabId(callback) {
     chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
-        callback && callback(tabs.length ? tabs[0].id : null);
+        callback && callback(tabs.length ? tabs[0].id : 0);
     });
 }
 function sendMessageToContentScript(message, callback) {
@@ -46,8 +46,11 @@ function download(url, filename, success) {
         success && success();
     });
 }
-function startSpider() {
-    sendMessageToContentScript({ cmd: 'start_spider' });
+function startGoods() {
+    sendMessageToContentScript({ cmd: 'start_goods' });
+}
+function collect() {
+    sendMessageToContentScript({ cmd: 'collect' });
 }
 chrome.runtime.onMessage.addListener(function (request, _, sendResponse) {
     if (request.cmd === 'batch_download') {
@@ -76,13 +79,27 @@ chrome.downloads.onDeterminingFilename.addListener(function (downloadItem, sugge
 });
 chrome.contextMenus.removeAll();
 chrome.contextMenus.create({
-    id: 'start-spider',
-    title: chrome.i18n.getMessage('menuStart')
+    id: 'start-goods',
+    title: chrome.i18n.getMessage('startGoods')
+});
+chrome.contextMenus.create({
+    id: 'start-exam',
+    title: chrome.i18n.getMessage('startExam')
+});
+chrome.contextMenus.create({
+    id: 'collect',
+    title: chrome.i18n.getMessage('collect')
 });
 chrome.contextMenus.onClicked.addListener(function (info) {
     switch (info.menuItemId) {
-        case 'start-spider':
-            startSpider();
+        case 'start-goods':
+            startGoods();
+            break;
+        case 'start-exam':
+            startExam();
+            break;
+        case 'collect':
+            collect();
             break;
     }
 });

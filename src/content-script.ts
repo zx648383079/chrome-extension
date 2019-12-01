@@ -1,7 +1,13 @@
 chrome.runtime.onMessage.addListener(function(request, _, sendResponse)
 {
-	if (request.cmd === 'start_spider') {
-        startSpider();
+	if (request.cmd === 'start_goods') {
+        startGoods();
+        sendResponse('');
+    } else if (request.cmd === 'start_exam') {
+        startExam();
+        sendResponse('');
+    } else if (request.cmd === 'collect') {
+        collect();
         sendResponse('');
     } else {
 		sendResponse('我收到你的消息了：'+JSON.stringify(request));
@@ -17,12 +23,49 @@ function sendMessage(cmd: string| any, data?: any) {
     });
 }
 
-function startSpider() {
+function collect() {
+    const url = window.location.href;
+    const description = document.querySelector('[name="description"]')?.getAttribute('content');
+    const title = document.title;
+    let icon = 'favicon.ico';
+    ZoR<HTMLLinkElement>('link').forEach(item => {
+        const name = item.getAttribute('name');
+        if (name && (name.indexOf('shortcut') >= 0 || name.indexOf('icon') >= 0)) {
+            icon = item.getAttribute('content') as string;
+        }
+    });
+    if (icon.indexOf('//') < 0) {
+        icon = url.substr(0, url.indexOf('/', 10) || url.length) + '/' + icon.replace(/^\//, '');
+    }
+    ajax('http://zodream.localhost/cms/admin/content/import', {url, title, icon, description});
+}
+
+function startExam() {
+    let data = getSpiderData();
+    if (!data) {
+        return;
+    }
+    ajax('http://zodream.localhost/exam/admin/question/import', data);
+    return;
+    sendMessage({
+        cmd: 'batch_download',
+        files: [
+            {
+                content: data,
+                filename: data.id + '.json',
+            }
+        ],
+        folder: 'exam_question'
+    });
+}
+
+function startGoods() {
     let data = getSpiderData();
     if (!data) {
         return;
     }
     ajax('http://zodream.localhost/shop/admin/goods/import', data);
+    return;
     sendMessage({
         cmd: 'batch_download',
         files: [
@@ -43,11 +86,40 @@ function getSpiderData() {
             return getTM();
         case 'item.taobao.com':
             return getTB();
+        case 'www.jiakaobaodian.com':
+            return getJK();
         default:
             console.log('无相关程序');
             
             return;
     }
+}
+
+function getJK() {
+    const box = Zo<HTMLDivElement>('.layout-article');
+    if (!box) {
+        return;
+    }
+    const text = Zo<HTMLDivElement>('.timu-text', box).innerText;
+    const match = text.match(/(\d+)\/\d+、(.+)/);
+    if (!match) {
+        return;
+    }
+    const id = match[1];
+    const title = match[2];
+    const options: any[] = [];
+    ZoR<HTMLDivElement>('.options-w p', box).forEach(item => {
+        const right = item.classList.contains('success');
+        const content = item.innerText.replace(/[A-Z]、/, '');
+        options.push({content, right});
+    });
+    const xjBox = Zo<HTMLDivElement>('.xiangjie', box);
+    if (!xjBox) {
+        return {id, title, options};
+    }
+    const analysis = Zo<HTMLDivElement>('.content', xjBox).innerText;
+    const easiness = parseInt(Zo<HTMLDivElement>('.bfb', xjBox).style.width.replace('%', '')) / 10;
+    return {id, title, options, analysis, easiness};
 }
 
 function getTB() {

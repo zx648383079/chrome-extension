@@ -1,7 +1,15 @@
 "use strict";
 chrome.runtime.onMessage.addListener(function (request, _, sendResponse) {
-    if (request.cmd === 'start_spider') {
-        startSpider();
+    if (request.cmd === 'start_goods') {
+        startGoods();
+        sendResponse('');
+    }
+    else if (request.cmd === 'start_exam') {
+        startExam();
+        sendResponse('');
+    }
+    else if (request.cmd === 'collect') {
+        collect();
         sendResponse('');
     }
     else {
@@ -16,12 +24,48 @@ function sendMessage(cmd, data) {
         console.log('收到来自后台的回复：' + response);
     });
 }
-function startSpider() {
+function collect() {
+    var _a;
+    var url = window.location.href;
+    var description = (_a = document.querySelector('[name="description"]')) === null || _a === void 0 ? void 0 : _a.getAttribute('content');
+    var title = document.title;
+    var icon = 'favicon.ico';
+    ZoR('link').forEach(function (item) {
+        var name = item.getAttribute('name');
+        if (name && (name.indexOf('shortcut') >= 0 || name.indexOf('icon') >= 0)) {
+            icon = item.getAttribute('content');
+        }
+    });
+    if (icon.indexOf('//') < 0) {
+        icon = url.substr(0, url.indexOf('/', 10) || url.length) + '/' + icon.replace(/^\//, '');
+    }
+    ajax('http://zodream.localhost/cms/admin/content/import', { url: url, title: title, icon: icon, description: description });
+}
+function startExam() {
+    var data = getSpiderData();
+    if (!data) {
+        return;
+    }
+    ajax('http://zodream.localhost/exam/admin/question/import', data);
+    return;
+    sendMessage({
+        cmd: 'batch_download',
+        files: [
+            {
+                content: data,
+                filename: data.id + '.json'
+            }
+        ],
+        folder: 'exam_question'
+    });
+}
+function startGoods() {
     var data = getSpiderData();
     if (!data) {
         return;
     }
     ajax('http://zodream.localhost/shop/admin/goods/import', data);
+    return;
     sendMessage({
         cmd: 'batch_download',
         files: [
@@ -41,10 +85,38 @@ function getSpiderData() {
             return getTM();
         case 'item.taobao.com':
             return getTB();
+        case 'www.jiakaobaodian.com':
+            return getJK();
         default:
             console.log('无相关程序');
             return;
     }
+}
+function getJK() {
+    var box = Zo('.layout-article');
+    if (!box) {
+        return;
+    }
+    var text = Zo('.timu-text', box).innerText;
+    var match = text.match(/(\d+)\/\d+、(.+)/);
+    if (!match) {
+        return;
+    }
+    var id = match[1];
+    var title = match[2];
+    var options = [];
+    ZoR('.options-w p', box).forEach(function (item) {
+        var right = item.classList.contains('success');
+        var content = item.innerText.replace(/[A-Z]、/, '');
+        options.push({ content: content, right: right });
+    });
+    var xjBox = Zo('.xiangjie', box);
+    if (!xjBox) {
+        return { id: id, title: title, options: options };
+    }
+    var analysis = Zo('.content', xjBox).innerText;
+    var easiness = parseInt(Zo('.bfb', xjBox).style.width.replace('%', '')) / 10;
+    return { id: id, title: title, options: options, analysis: analysis, easiness: easiness };
 }
 function getTB() {
     var _a, _b, _c, _d, _e, _f;

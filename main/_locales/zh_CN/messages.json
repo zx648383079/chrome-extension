@@ -1,8 +1,14 @@
 {
     "pluginDesc": {
-        "message": "网页商品爬虫"
+        "message": "网页爬虫"
     },
-    "menuStart": {
-        "message": "抓取"
+    "startGoods": {
+        "message": "抓取商品"
+    },
+    "startExam": {
+        "message": "抓取题库"
+    },
+    "collect": {
+        "message": "收藏"
     }
 }

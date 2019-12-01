@@ -35,6 +35,7 @@
         "notifications",
         "storage",
         "downloads",
+        "declarativeContent",
         "http://*/*",
         "https://*/*"
     ],

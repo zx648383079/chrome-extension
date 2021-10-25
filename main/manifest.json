@@ -39,7 +39,7 @@
         "http://*/*",
         "https://*/*"
     ],
-    "homepage_url": "http://www.zodream.cn",
+    "homepage_url": "https://zodream.cn",
     "options_ui":
     {
         "page": "options.html",

@@ -1,0 +1,14 @@
+{
+    "pluginDesc": {
+        "message": "web spider"
+    },
+    "startGoods": {
+        "message": "spider goods"
+    },
+    "startExam": {
+        "message": "spider exam"
+    },
+    "collect": {
+        "message": "collect"
+    }
+}

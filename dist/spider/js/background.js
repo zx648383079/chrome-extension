@@ -52,6 +52,9 @@ function startGoods() {
 function collect() {
     sendMessageToContentScript({ cmd: 'collect' });
 }
+function startExam() {
+    sendMessageToContentScript({ cmd: 'start_exam' });
+}
 chrome.runtime.onMessage.addListener(function (request, _, sendResponse) {
     if (request.cmd === 'batch_download') {
         batchDownload(request.files, request.folder);
@@ -80,15 +83,15 @@ chrome.downloads.onDeterminingFilename.addListener(function (downloadItem, sugge
 chrome.contextMenus.removeAll();
 chrome.contextMenus.create({
     id: 'start-goods',
-    title: chrome.i18n.getMessage('startGoods')
+    title: chrome.i18n.getMessage('startGoods'),
 });
 chrome.contextMenus.create({
     id: 'start-exam',
-    title: chrome.i18n.getMessage('startExam')
+    title: chrome.i18n.getMessage('startExam'),
 });
 chrome.contextMenus.create({
     id: 'collect',
-    title: chrome.i18n.getMessage('collect')
+    title: chrome.i18n.getMessage('collect'),
 });
 chrome.contextMenus.onClicked.addListener(function (info) {
     switch (info.menuItemId) {

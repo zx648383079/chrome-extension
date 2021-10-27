@@ -11,7 +11,7 @@
     },
     "background":
     {
-        "scripts": ["dist/background.js"],
+        "scripts": ["js/util.js", "js/background.js"],
         "persistent": false
     },
     "browser_action": 
@@ -24,8 +24,9 @@
     [
         {
             "matches": ["<all_urls>"],
-            "js": ["dist/content-script.js"],
-            "run_at": "document_end"
+            "js": ["js/util.js", "js/content-script.js"],
+            "run_at": "document_end",
+            "css": ["css/style.css"]
         }
     ],
     "permissions":

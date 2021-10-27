@@ -66,6 +66,10 @@ function collect() {
     sendMessageToContentScript({cmd: 'collect'});
 }
 
+function startExam() {
+    sendMessageToContentScript({cmd: 'start_exam'});
+}
+
 chrome.runtime.onMessage.addListener(function(request, _, sendResponse)
 {
     if (request.cmd === 'batch_download') {

@@ -4,6 +4,7 @@
   "description": "shop spider",
   "main": "dist/index.js",
   "scripts": {
+    "build": "gulp",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "zodream",
@@ -12,6 +13,7 @@
     "@types/chrome": "0.0.159",
     "gulp": "^4.0.2",
     "gulp-typescript": "^5.0.1",
+    "gulp-vue2mini": "^1.2.1",
     "typescript": "^4.4.4"
   }
 }

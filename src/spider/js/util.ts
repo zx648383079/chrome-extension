@@ -9,12 +9,27 @@ class ZreUtil {
     }
 
     public static post(url: string, data: any) {
-        const xhr = new XMLHttpRequest();
-        xhr.open('post', url);
-        xhr.setRequestHeader('content-type', 'application/json');
-        xhr.send(JSON.stringify(data));
-        xhr.onreadystatechange = function() {
-            console.log(xhr.status);
-        };
+        chrome.storage.local.get({token: ''}).then(configs => {
+            if (!configs.token) {
+                alert('请先设置token');
+                return;
+            }
+            const xhr = new XMLHttpRequest();
+            xhr.open('post', url);
+            xhr.setRequestHeader('content-type', 'application/json');
+            xhr.setRequestHeader('Authorization', 'Bearer ' + configs.token);
+            xhr.send(JSON.stringify(data));
+            xhr.onreadystatechange = function() {
+                console.log(xhr.status);
+            };
+        });
+    }
+
+    public static dialog(html: string): HTMLDivElement {
+        const box = document.createElement('div');
+        box.className = '_zre-dialog';
+        box.innerHTML = html;
+        document.body.appendChild(box);
+        return box;
     }
 }

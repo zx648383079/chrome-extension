@@ -26,19 +26,53 @@ function sendMessage(cmd: string| any, data?: any) {
 class CollectProject {
     public run() {
         const url = window.location.href;
-        const description = document.querySelector('[name="description"]')?.getAttribute('content');
+        const description = document.querySelector('[name="description"]')?.getAttribute('content') || '';
+        const keywords = document.querySelector('[name="keywords"]')?.getAttribute('content') || '';
         const title = document.title;
-        let icon = 'favicon.ico';
+        let logo = 'favicon.ico';
         ZreUtil.findAll<HTMLLinkElement>('link').forEach(item => {
             const name = item.getAttribute('name');
             if (name && (name.indexOf('shortcut') >= 0 || name.indexOf('icon') >= 0)) {
-                icon = item.getAttribute('content') as string;
+                logo = item.getAttribute('content') as string;
             }
         });
-        if (icon.indexOf('//') < 0) {
-            icon = url.substr(0, url.indexOf('/', 10) || url.length) + '/' + icon.replace(/^\//, '');
+        if (logo.indexOf('//') < 0) {
+            logo = url.substr(0, url.indexOf('/', 10) || url.length) + '/' + logo.replace(/^\//, '');
         }
-        ZreUtil.post('http://zodream.localhost/cms/admin/content/import', {url, title, icon, description});
+        this.confirm({url, title, logo, keywords, description}, data => {
+            //ZreUtil.post('http://zodream.localhost/cms/admin/content/import', data);
+            if (data.keywords) {
+                data.keywords = data.keywords.trim().split(',') as any;
+            }
+            ZreUtil.post('http://zodream.localhost/navigation/admin/page/save', data);
+        });
+    }
+
+    private confirm<T = any>(data: T, cb: (data: T) => void) {
+        const box = ZreUtil.dialog(`<form class="_zre-form" onsubmit="return false">
+        <input type="text" name="url" placeholder="网址" value="${data.url}">
+        <input type="text" name="title" placeholder="标题" value="${data.title}">
+        <input type="text" name="keywords" placeholder="关键词" value="${data.keywords}">
+        <input type="text" name="logo" placeholder="Logo" value="${data.logo}">
+        <textarea name="description" placeholder="描述">${data.description}</textarea>
+        <button type="submit">确认收藏</button>
+        <button type="reset" class="_zre-dialog-close">取消</button>
+    </form>`);
+        const form = ZreUtil.find<HTMLFormElement>('form', box);
+        form.addEventListener('submit', () => {
+            cb({
+                url: form.elements['url'].value,
+                title: form.elements['title'].value,
+                keywords: form.elements['keywords'].value,
+                logo: form.elements['logo'].value,
+                description: form.elements['description'].value,
+            } as any);
+            document.body.removeChild(box);
+            return false;
+        });
+        ZreUtil.find('._zre-dialog-close').addEventListener('click', () => {
+            document.body.removeChild(box);
+        });
     }
 }
 

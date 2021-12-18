@@ -1,19 +1,68 @@
-body {
+._zre-body {
   font-family: "Microsoft Yahei";
-  width: 100px;
-  min-height: 100px;
+  width: 6.25rem;
+  min-height: 6.25rem;
+  background-color: #f4f4f4;
 }
-
-ul {
+._zre-body ul {
   list-style: none;
-  line-height: 30px;
+  line-height: 2rem;
   padding: 0;
 }
-ul li {
+._zre-body ul li {
   cursor: pointer;
-  padding-left: 20px;
+  padding-left: 1.25rem;
+  margin-bottom: 0.3rem;
 }
-ul li:hover {
+._zre-body ul li:hover {
   background-color: rgba(26, 231, 187, 0.1);
   border: 1px solid firebrick;
+}
+
+._zre-dialog {
+  background-color: #f4f4f4;
+  position: fixed;
+  z-index: 99999;
+  left: 50%;
+  margin-left: -21.875rem;
+  top: 0;
+  width: 43.75rem;
+  background: #fff;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  padding: 0.5rem;
+}
+._zre-dialog ._zre-dialog-close {
+  color: #fff;
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+._zre-form {
+  display: block !important;
+}
+._zre-form input,
+._zre-form textarea {
+  display: block !important;
+  padding: 0.5rem;
+  border: 1px solid #bdbcbc;
+  margin-bottom: 0.5rem;
+  outline: 0;
+  font-weight: 400;
+  width: 90%;
+}
+._zre-form button {
+  display: inline-block;
+  font-weight: 400;
+  line-height: 1.5;
+  text-align: center;
+  text-decoration: none;
+  vertical-align: middle;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid #0d6efd;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  border-radius: 0.25rem;
+  color: #fff;
+  background-color: #0d6efd;
 }

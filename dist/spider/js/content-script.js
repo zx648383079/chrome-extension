@@ -28,21 +28,45 @@ var CollectProject = (function () {
     function CollectProject() {
     }
     CollectProject.prototype.run = function () {
-        var _a;
+        var _a, _b;
         var url = window.location.href;
-        var description = (_a = document.querySelector('[name="description"]')) === null || _a === void 0 ? void 0 : _a.getAttribute('content');
+        var description = ((_a = document.querySelector('[name="description"]')) === null || _a === void 0 ? void 0 : _a.getAttribute('content')) || '';
+        var keywords = ((_b = document.querySelector('[name="keywords"]')) === null || _b === void 0 ? void 0 : _b.getAttribute('content')) || '';
         var title = document.title;
-        var icon = 'favicon.ico';
+        var logo = 'favicon.ico';
         ZreUtil.findAll('link').forEach(function (item) {
             var name = item.getAttribute('name');
             if (name && (name.indexOf('shortcut') >= 0 || name.indexOf('icon') >= 0)) {
-                icon = item.getAttribute('content');
+                logo = item.getAttribute('content');
             }
         });
-        if (icon.indexOf('//') < 0) {
-            icon = url.substr(0, url.indexOf('/', 10) || url.length) + '/' + icon.replace(/^\//, '');
+        if (logo.indexOf('//') < 0) {
+            logo = url.substr(0, url.indexOf('/', 10) || url.length) + '/' + logo.replace(/^\//, '');
         }
-        ZreUtil.post('http://zodream.localhost/cms/admin/content/import', { url: url, title: title, icon: icon, description: description });
+        this.confirm({ url: url, title: title, logo: logo, keywords: keywords, description: description }, function (data) {
+            if (data.keywords) {
+                data.keywords = data.keywords.trim().split(',');
+            }
+            ZreUtil.post('http://zodream.localhost/navigation/admin/page/save', data);
+        });
+    };
+    CollectProject.prototype.confirm = function (data, cb) {
+        var box = ZreUtil.dialog("<form class=\"_zre-form\" onsubmit=\"return false\">\n        <input type=\"text\" name=\"url\" placeholder=\"\u7F51\u5740\" value=\"" + data.url + "\">\n        <input type=\"text\" name=\"title\" placeholder=\"\u6807\u9898\" value=\"" + data.title + "\">\n        <input type=\"text\" name=\"keywords\" placeholder=\"\u5173\u952E\u8BCD\" value=\"" + data.keywords + "\">\n        <input type=\"text\" name=\"logo\" placeholder=\"Logo\" value=\"" + data.logo + "\">\n        <textarea name=\"description\" placeholder=\"\u63CF\u8FF0\">" + data.description + "</textarea>\n        <button type=\"submit\">\u786E\u8BA4\u6536\u85CF</button>\n        <button type=\"reset\" class=\"_zre-dialog-close\">\u53D6\u6D88</button>\n    </form>");
+        var form = ZreUtil.find('form', box);
+        form.addEventListener('submit', function () {
+            cb({
+                url: form.elements['url'].value,
+                title: form.elements['title'].value,
+                keywords: form.elements['keywords'].value,
+                logo: form.elements['logo'].value,
+                description: form.elements['description'].value,
+            });
+            document.body.removeChild(box);
+            return false;
+        });
+        ZreUtil.find('._zre-dialog-close').addEventListener('click', function () {
+            document.body.removeChild(box);
+        });
     };
     return CollectProject;
 }());

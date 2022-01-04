@@ -9,7 +9,7 @@ class ZreUtil {
     }
 
     public static post(url: string, data: any) {
-        chrome.storage.local.get({token: ''}).then(configs => {
+        chrome.storage.local.get({token: ''}, configs => {
             if (!configs.token) {
                 alert('请先设置token');
                 return;

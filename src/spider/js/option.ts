@@ -5,10 +5,10 @@
     }
     const saveToken = (token: string) => {
         if (!token || token.trim().length < 1) {
-            chrome.storage.local.remove('token').then(() => {});
+            chrome.storage.local.remove('token', () => {});
             return;
         }
-        chrome.storage.local.set({token}).then(() => {
+        chrome.storage.local.set({token}, () => {
             alert('保存成功');
         });
     };

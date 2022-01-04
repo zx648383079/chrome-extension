@@ -11,7 +11,7 @@ var ZreUtil = (function () {
         return parent.querySelectorAll(tag);
     };
     ZreUtil.post = function (url, data) {
-        chrome.storage.local.get({ token: '' }).then(function (configs) {
+        chrome.storage.local.get({ token: '' }, function (configs) {
             if (!configs.token) {
                 alert('请先设置token');
                 return;

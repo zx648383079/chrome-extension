@@ -6,10 +6,10 @@
     }
     var saveToken = function (token) {
         if (!token || token.trim().length < 1) {
-            chrome.storage.local.remove('token').then(function () { });
+            chrome.storage.local.remove('token', function () { });
             return;
         }
-        chrome.storage.local.set({ token: token }).then(function () {
+        chrome.storage.local.set({ token: token }, function () {
             alert('保存成功');
         });
     };

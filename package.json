@@ -4,16 +4,14 @@
   "description": "shop spider",
   "main": "dist/index.js",
   "scripts": {
-    "build": "gulp",
+    "build": "vue2mini --custom",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "zodream",
   "license": "MIT",
   "devDependencies": {
-    "@types/chrome": "^0.0.174",
-    "gulp": "^4.0.2",
-    "gulp-typescript": "^5.0.1",
-    "gulp-vue2mini": "^1.2.1",
-    "typescript": "^4.5.4"
+    "@types/chrome": "^0.0.267",
+    "gulp-vue2mini": "^1.5.3",
+    "typescript": "^5.4.5"
   }
 }

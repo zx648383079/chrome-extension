@@ -58,18 +58,6 @@ function download(url: string, filename: string, success?: () => void) {
     });
 }
 
-function startGoods() {
-    sendMessageToContentScript({cmd: 'start_goods'});
-}
-
-function collect() {
-    sendMessageToContentScript({cmd: 'collect'});
-}
-
-function startExam() {
-    sendMessageToContentScript({cmd: 'start_exam'});
-}
-
 chrome.runtime.onMessage.addListener(function(request, _, sendResponse)
 {
     if (request.cmd === 'batch_download') {
@@ -120,27 +108,30 @@ chrome.downloads.onDeterminingFilename.addListener(function(downloadItem, sugges
 chrome.contextMenus.removeAll();
 
 chrome.contextMenus.create({
-    id: 'start-goods',
+    id: 'start_goods',
     title: chrome.i18n.getMessage('startGoods'),
 });
 chrome.contextMenus.create({
-    id: 'start-exam',
+    id: 'start_exam',
     title: chrome.i18n.getMessage('startExam'),
 });
 chrome.contextMenus.create({
     id: 'collect',
     title: chrome.i18n.getMessage('collect'),
 });
+chrome.contextMenus.create({
+    id: 'start_tracker',
+    title: chrome.i18n.getMessage('startTracker'),
+});
 chrome.contextMenus.onClicked.addListener(function(info) {
     switch(info.menuItemId){
-        case 'start-goods':
-            startGoods();   
-            break;
-        case 'start-exam':
-            startExam();   
-            break;
+        case 'start_goods':
+        case 'start_exam':
         case 'collect':
-            collect();   
+        case 'start_tracker':
+            sendMessageToContentScript({cmd: info.menuItemId});
             break;
     }
 });
+
+// const response = await fetch('https://www.example.com/greeting.json'')

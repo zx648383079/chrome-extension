@@ -1,5 +1,5 @@
 {
-    "manifest_version": 2,
+    "manifest_version": 3,
     "name": "shopSpider",
     "version": "1.0.0",
     "description": "__MSG_pluginDesc__",
@@ -11,10 +11,10 @@
     },
     "background":
     {
-        "scripts": ["js/util.js", "js/background.js"],
-        "persistent": false
+        "service_worker": "js/background.js",
+        "type": "module"
     },
-    "browser_action": 
+    "action": 
     {
         "default_icon": "images/icon.png",
         "default_title": "__MSG_pluginDesc__",
@@ -36,7 +36,10 @@
         "notifications",
         "storage",
         "downloads",
-        "declarativeContent",
+        "declarativeContent"
+    ],
+    "host_permissions":
+    [
         "http://*/*",
         "https://*/*"
     ],

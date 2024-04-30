@@ -13,7 +13,7 @@
         });
     };
     form.addEventListener('submit', () => {
-        saveToken(form.elements['token'].value);
+        saveToken(ZreUtil.inputValue(form, 'token'));
         return false;
     });
 })();

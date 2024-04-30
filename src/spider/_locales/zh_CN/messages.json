@@ -8,6 +8,9 @@
     "startExam": {
         "message": "抓取题库"
     },
+    "startTracker": {
+        "message": "抓取行情"
+    },
     "collect": {
         "message": "收藏"
     }

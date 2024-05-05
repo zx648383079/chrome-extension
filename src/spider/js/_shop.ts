@@ -4,7 +4,7 @@ class ShopProject implements ISpider {
         if (!data) {
             return;
         }
-        ZreUtil.post('shop/admin/goods/import', data);
+        ZreUtil.post('shop/admin/goods/crawl', data);
         return;
         // sendMessage({
         //     cmd: 'batch_download',

@@ -12,8 +12,17 @@
             alert('保存成功');
         });
     };
+    const getToken = () => {
+        chrome.storage.local.get({token: ''}, configs => {
+            if (!configs.token) {
+                return;
+            }
+            ZreUtil.inputValue(form, 'token', configs.token);
+        });
+    };
     form.addEventListener('submit', () => {
         saveToken(ZreUtil.inputValue(form, 'token'));
         return false;
     });
+    getToken();
 })();

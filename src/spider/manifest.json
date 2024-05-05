@@ -20,6 +20,7 @@
         "default_title": "__MSG_pluginDesc__",
         "default_popup": "popup.html"
     },
+    "devtools_page": "devtool.html",
     "content_scripts": 
     [
         {
@@ -40,8 +41,7 @@
     ],
     "host_permissions":
     [
-        "http://*/*",
-        "https://*/*"
+        "<all_urls>"
     ],
     "homepage_url": "https://zodream.cn",
     "options_ui":

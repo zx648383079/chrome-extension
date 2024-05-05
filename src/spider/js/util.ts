@@ -1,5 +1,6 @@
-class ZreUtil {
+// @import '_configs.ts'
 
+class ZreUtil {
     public static find<T = HTMLDivElement>(tag: string, parent: Document|HTMLElement = document): T {
         return parent.querySelector(tag) as any;
     }
@@ -8,9 +9,14 @@ class ZreUtil {
         return parent.querySelectorAll(tag) as any;
     }
 
-    public static inputValue(form: HTMLFormElement, name: string): string {
+    public static inputValue(form: HTMLFormElement, name: string): string;
+    public static inputValue(form: HTMLFormElement, name: string, val: any): void;
+    public static inputValue(form: HTMLFormElement, name: string, val?: any): string|void {
         const input = form.elements.namedItem(name);
-        return (input as any)?.value ?? '';
+        if (typeof val === 'undefined') {
+            return (input as any)?.value ?? '';
+        }
+        (input as HTMLInputElement).value = val;
     }
 
     public static each<T extends Element>(items: HTMLCollectionOf<T>, cb: (item: T, index: number) => void|false): void
@@ -30,23 +36,35 @@ class ZreUtil {
         return data;
     }
 
-    public static post(url: string, data: any) {
+    public static post(url: string, data: any, log?: (...args: any[]) => void) {
+        if (!log) {
+            log = console.log;
+        }
         chrome.storage.local.get({token: ''}, configs => {
             if (!configs.token) {
-                alert('请先设置token');
+                log('请先设置token');
                 return;
             }
             if (url.indexOf('://') < 0) {
-                url = 'http://zodream.localhost/open/' + url;
+                const timestamp = new Date().toString();
+                url = `${environment.apiEndpoint}${url}?appid=${environment.appid}&timestamp=${timestamp}`;
             }
+            log('crawl sending...');
             const xhr = new XMLHttpRequest();
             xhr.open('post', url);
             xhr.setRequestHeader('content-type', 'application/json');
             xhr.setRequestHeader('Authorization', 'Bearer ' + configs.token);
-            xhr.send(JSON.stringify(data));
             xhr.onreadystatechange = function() {
-                console.log(xhr.status);
+                if (xhr.readyState !== 4) {
+                    return;
+                }
+                // if (xhr.status === 200) {
+
+                // }
+                log(xhr.status, xhr.responseText);
             };
+            xhr.send(JSON.stringify(data));
+           
         });
     }
 

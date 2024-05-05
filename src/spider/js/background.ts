@@ -73,6 +73,11 @@ chrome.runtime.onMessage.addListener(function(request, _, sendResponse)
     
 // });
 
+// chrome.webRequest.onCompleted.addListener(res => {
+//     console.log(res);
+    
+// }, {urls: ['https://buff.163.com/api/market/goods/price_history/*']});
+
 chrome.downloads.onDeterminingFilename.addListener(function(downloadItem, suggest) {
     if (!filename_map.hasOwnProperty(downloadItem.id)) {
         suggest({

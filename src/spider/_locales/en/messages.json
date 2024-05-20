@@ -13,5 +13,8 @@
     },
     "collect": {
         "message": "collect"
+    },
+    "useSteam": {
+        "message": "Steam parity"
     }
 }

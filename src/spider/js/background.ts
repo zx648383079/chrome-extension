@@ -95,6 +95,7 @@ chrome.downloads.onDeterminingFilename.addListener(function(downloadItem, sugges
     delete filename_map[downloadItem.id];
 });
 
+
 // chrome.runtime.onInstalled.addListener(function(){
 //     chrome.declarativeContent.onPageChanged.removeRules(undefined, function(){
 //         chrome.declarativeContent.onPageChanged.addRules([
@@ -128,12 +129,17 @@ chrome.contextMenus.create({
     id: 'start_tracker',
     title: chrome.i18n.getMessage('startTracker'),
 });
+chrome.contextMenus.create({
+    id: 'use_steam',
+    title: chrome.i18n.getMessage('useSteam'),
+});
 chrome.contextMenus.onClicked.addListener(function(info) {
     switch(info.menuItemId){
         case 'start_goods':
         case 'start_exam':
         case 'collect':
         case 'start_tracker':
+        case 'use_steam':
             sendMessageToContentScript({cmd: info.menuItemId});
             break;
     }

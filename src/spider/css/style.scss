@@ -1,4 +1,35 @@
-._zre-body {
+$prefix: '_zre-';
+$dialog: #343e4b;
+$shadow: rgba(0, 0, 0, 0.2);
+$dialogText: #959595;
+$dialogInputText: #fff;
+$dialogHover: #2f3744;
+$dialogHoverText: #818C9B;
+$dialogBorder: #333;
+
+
+.#{$prefix}iconfont {
+    font-family: "Segoe MDL2 Assets";
+    font-weight: 900;
+    font-style: normal;
+    &.icon-exchange::before {
+        content: "\e8ab";
+    }
+    &.icon-close::before {
+        content: "\e8bb";
+    }
+    &.icon-list::before {
+        content: "\e8c4";
+    }
+    &.icon-refresh::before {
+        content: "\e72c";
+    }
+    &.icon-eye::before {
+        content: "\e7b3";
+    }
+}
+
+.#{$prefix}body {
     font-family: 'Microsoft Yahei';
     width: 6.25rem;
     min-height: 6.25rem;
@@ -18,25 +49,147 @@
         }
     }
 }
-._zre-dialog {
-    background-color: #f4f4f4;
+
+.#{$prefix}toolbar {
+    position: fixed;
+    right: 0;
+    top: 20vh;
+    background-color: $dialog;
+    box-shadow: 0 0 20px $shadow;
+    display: flex;
+    flex-direction: column;
+    width: 3rem;
+    line-height: 3rem;
+    a {
+        font-size: 1.5rem;
+        display: block;
+        text-align: center;
+        color: $dialogText;
+        &:not(:last-child) {
+            border-bottom: 1px solid $dialogBorder;
+        }
+        &:hover {
+            background-color: $dialogHover;
+            color: $dialogHoverText;
+        }
+    }
+}
+
+.#{$prefix}dialog-box {
     position: fixed;
     z-index: 99999;
     left: 50%;
     margin-left: -21.875rem;
     top: 0;
     width: 43.75rem;
-    background: #fff;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-    padding: .5rem;
-    ._zre-dialog-close {
-        color: #fff;
-        background-color: #dc3545;
-        border-color: #dc3545;
+    background-color: $dialog;
+    color: $dialogText;
+    box-shadow: 0 0 20px $shadow;
+    display: none;
+    .#{$prefix}dialog-header {
+        position: relative;
+        display: flex;
+        justify-content: space-between;
+        height: 2rem;
+        line-height: 2rem;
+        padding-left: .8rem;
+        user-select: none;
+    }
+    .#{$prefix}dialog-close {
+        display: block;
+        width: 2rem;
+        text-align: center;
+        &::before {
+            content: "\e8bb";
+        }
+        &:hover {
+            background-color: $dialogHover;
+            color: $dialogHoverText;
+        }
+    }
+    .#{$prefix}input-header-block {
+        position: relative;
+        input,
+        textarea {
+            color: $dialogInputText;
+            box-sizing: border-box;
+            width: 100%;
+            padding: .2rem .8rem;
+            background-color: transparent;
+            border-radius: 0;
+            border-color: $dialogBorder;
+            &:focus {
+                border-color: #333;
+                & + label {
+                    font-size: .8rem;
+                    top: -.5rem;
+                }
+            }
+        }
+        input {
+            height: 2.5rem;
+            border-width: 1px;
+            border-style: solid;
+        }
+        label {
+            display: block;
+            padding: 0 .4rem;
+            background-color: $dialog;
+            position: absolute;
+            left: .8rem;
+            top: .6rem;
+            font-size: 1rem;
+            transition: all .5s;
+            user-select: none;
+        }
+        &.#{$prefix}input-not-empty,
+        &:hover {
+            label {
+                font-size: .8rem;
+                top: -.5rem;
+            }
+        }
+    }
+    .#{$prefix}input-flex-group {
+        display: flex;
+        .#{$prefix}input-header-block {
+            flex: 1;
+            &:first-child {
+                input {
+                    border-top-left-radius: .25rem;
+                    border-bottom-left-radius: .25rem;
+                }
+            }
+        }
+        .#{$prefix}btn {
+            background-color: transparent;
+            border: 0;
+            padding: 0 .8rem;
+            color: $dialogText;
+            border-top-right-radius: .25rem;
+            border-bottom-right-radius: .25rem;
+            height: 2.5rem;
+            &:hover {
+                background-color: $dialogHover;
+                color: $dialogHoverText;
+            }
+        }
+    }
+
+    &._zre-opened {
+        display: block;
+    }
+}
+.#{$prefix}table {
+    width: 100%;
+    th,
+    td {
+        line-height: 2rem;
+        text-align: center;
     }
 }
 
-._zre-form {
+.#{$prefix}form {
     display: block !important;
     input,
     textarea {
@@ -66,8 +219,10 @@
     }
 }
 
-@media screen and (max-width: 700px) {
-    ._zre-dialog {
+
+
+@media screen and (max-width: 48rem) {
+    .#{$prefix}dialog {
         left: 0;
         margin-left: 0;
         width: 100%;

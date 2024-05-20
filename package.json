@@ -10,8 +10,8 @@
   "author": "zodream",
   "license": "MIT",
   "devDependencies": {
-    "@types/chrome": "^0.0.267",
-    "gulp-vue2mini": "^1.5.4",
+    "@types/chrome": "^0.0.268",
+    "gulp-vue2mini": "^1.5.7",
     "typescript": "^5.4.5"
   }
 }

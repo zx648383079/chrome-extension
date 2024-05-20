@@ -13,5 +13,8 @@
     },
     "collect": {
         "message": "收藏"
+    },
+    "useSteam": {
+        "message": "Steam比价"
     }
 }

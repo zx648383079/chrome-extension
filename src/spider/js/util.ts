@@ -9,6 +9,30 @@ class ZreUtil {
         return parent.querySelectorAll(tag) as any;
     }
 
+    public static toggleClass(ele: HTMLElement, tag: string, force?: boolean) {
+        if (force === void 0) {
+            force = !ele.classList.contains(tag);
+        }
+        if (force) {
+            ele.classList.add(tag);
+            return;
+        }
+        ele.classList.remove(tag);
+    }
+
+    public static index(node: Node): number {
+        if (!node.parentNode) {
+            return -1;
+        }
+        const parent = node.parentNode;
+        for (let i = 0; i < parent.childNodes.length; i++) {
+            if (parent.childNodes[i] === node) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
     public static inputValue(form: HTMLFormElement, name: string): string;
     public static inputValue(form: HTMLFormElement, name: string, val: any): void;
     public static inputValue(form: HTMLFormElement, name: string, val?: any): string|void {
@@ -70,7 +94,7 @@ class ZreUtil {
 
     public static dialog(html: string): HTMLDivElement {
         const box = document.createElement('div');
-        box.className = '_zre-dialog';
+        box.className = '_zre-dialog-box';
         box.innerHTML = html;
         document.body.appendChild(box);
         return box;

@@ -30,7 +30,7 @@
             "css": ["css/style.css"]
         },
         {
-            "matches": ["https://buff.163.com/goods/*", "https://www.youpin898.com/goodInfo"],
+            "matches": ["https://buff.163.com/goods/*", "https://buff.163.com/market/*", "https://www.youpin898.com/goodInfo"],
             "js": ["js/steam.js"],
             "run_at": "document_end",
             "css": ["css/style.css"]

@@ -5,7 +5,7 @@ class TrackerProject implements ISpider {
         if (!data) {
             return;
         }
-        ZreUtil.post('tracker/admin/log/crawl', data);
+        ZreUtil.post('tracker/admin/log/crawl', data).then(_ => {});
     }
 
     public render(): any {

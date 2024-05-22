@@ -4,7 +4,7 @@ class ExamProject implements ISpider {
         if (!data) {
             return;
         }
-        ZreUtil.post('exam/admin/question/crawl', data);
+        ZreUtil.post('exam/admin/question/crawl', data).then(_ => {});
         return;
         // sendMessage({
         //     cmd: 'batch_download',

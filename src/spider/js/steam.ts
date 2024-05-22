@@ -1,3 +1,3 @@
-// @import '_tooler.ts'
 
-SteamTooler.createAuto();
+
+SteamTooler.createAuto()?.autoRun();

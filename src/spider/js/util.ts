@@ -60,35 +60,68 @@ class ZreUtil {
         return data;
     }
 
-    public static post(url: string, data: any, log?: (...args: any[]) => void) {
+    public static post<T = any>(url: string, data: any, log?: (...args: any[]) => void): Promise<T> {
         if (!log) {
             log = console.log;
         }
-        chrome.storage.local.get({token: ''}, configs => {
+        return chrome.storage.local.get({token: ''}).then(configs => {
             if (!configs.token) {
                 log('请先设置token');
-                return;
+                throw new Error('请先设置token');
             }
             if (url.indexOf('://') < 0) {
                 const timestamp = new Date().toString();
                 url = `${environment.apiEndpoint}${url}?appid=${environment.appid}&timestamp=${timestamp}`;
             }
             log('crawl sending...');
-            const xhr = new XMLHttpRequest();
-            xhr.open('post', url);
-            xhr.setRequestHeader('content-type', 'application/json');
-            xhr.setRequestHeader('Authorization', 'Bearer ' + configs.token);
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState !== 4) {
-                    return;
+            return this.request({
+                url,
+                method: 'post',
+                body: JSON.stringify(data),
+                headers: {
+                    'content-type': 'application/json',
+                    'Authorization': 'Bearer ' + configs.token
                 }
-                // if (xhr.status === 200) {
+            }).then(res => {
+                log(200, res);
+                return JSON.parse(res);
+            }, res => {
+                log(400, res);
+                return res;
+            });
+        });
+    }
 
-                // }
-                log(xhr.status, xhr.responseText);
+    public static request(option: {
+        url: string;
+        headers?: {
+            [key: string]: string
+        },
+        body?: string|FormData;
+        method?: 'get'|'post'|'delete',
+    }) {
+        return new Promise<string>((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open(option.method ?? 'get', option.url);
+            if (option.headers) {
+                for (const key in option.headers) {
+                    if (Object.prototype.hasOwnProperty.call(option.headers, key)) {
+                        xhr.setRequestHeader(key, option.headers[key]);
+                    }
+                }
+            }
+            xhr.onload = () => {
+                if (xhr.status === 200) {
+                    resolve(xhr.responseText);
+                }
             };
-            xhr.send(JSON.stringify(data));
-           
+            xhr.onerror = () => {
+                reject(xhr.responseText);
+            };
+            xhr.ontimeout = () => {
+                reject('timeout');
+            }
+            xhr.send(option.body);
         });
     }
 

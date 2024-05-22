@@ -2,33 +2,87 @@ interface ISteamSpiderConfig {
     host: string;
     pathRegex?: RegExp,
     steamPriceTag: string;
+    steamUrl: string;
     listTag: string;
     listPriceTag: string;
 }
 
 class SteamTooler {
     constructor(
-        private option: ISteamSpiderConfig,
-        auto = true,
+        private option: ISteamSpiderConfig
     ) {
-        const target = document.querySelector(option.steamPriceTag);
+
+        this.isDetailPage = !!this.option.pathRegex && this.option.pathRegex.test(window.location.pathname);
+    }
+
+    private steamIncomeScale = .85;
+    private currency = 23; // CNY
+    private steamPrice: number = 0;
+    private isDetailPage = false;
+    
+
+    /**
+     * 手动触发
+     * @returns 
+     */
+    public tapRun() {
+        const target = document.querySelector(this.option.steamPriceTag);
         if (!target) {
             return;
         }
         this.steamPrice = this.parseNumber(target.textContent);
         this.bindEvent(target as HTMLElement);
-        if (!auto) {
-            this.tapUpdateItem();
-            return;
+        this.tapUpdateItem();
+    }
+
+    /**
+     * 页面加载自动运行
+     * @returns 
+     */
+    public autoRun() {
+        if (this.isDetailPage) {
+            const target = document.querySelector(this.option.steamPriceTag);
+            if (!target) {
+                return;
+            }
+            this.steamPrice = this.parseNumber(target.textContent);
+            this.bindEvent(target as HTMLElement);
+            this.waitTdUpdate(this.updateItemPrice.bind(this));
         }
-        this.waitTdUpdate(this.updateItemPrice.bind(this));
         this.createUI();
     }
 
-    private steamIncomeScale = .85;
-    private steamPrice: number = 0;
-    private get steamIncome(): number {
-        return this.steamPrice * this.steamIncomeScale;
+    private runInList() {
+        if (window.location.host !== 'buff.163.com' || window.location.pathname.indexOf('market') < 0) {
+            return;
+        }
+        const eleMap: {
+            [key: string]: HTMLLIElement
+        } = {};
+        ZreUtil.findAll<HTMLLIElement>('#j_list_card li').forEach(li => {
+            const link = li.querySelector('a');
+            const productId = this.parseNumber(link?.getAttribute('href'));
+            eleMap[productId] = li;
+        });
+        ZreUtil.post<{
+            data: {
+                product: string,
+                price: number
+            }[]
+        }>('tracker/log/batch', {
+            channel: 'buff',
+            product: Object.keys(eleMap),
+            to: 'steam'
+        }).then(res => {
+            if (!res.data) {
+                return;
+            }
+            for (const item of res.data) {
+                const li = eleMap[item.product];
+                const priceNode = li.querySelector('.f_Strong') as HTMLSpanElement;
+                this.appendTip(priceNode, this.formatIncomeScale(priceNode.innerText, item.price), 'span');
+            }
+        });
     }
 
     private bindEvent(target: HTMLElement) {
@@ -47,15 +101,22 @@ class SteamTooler {
         });
     }
 
+    /**
+     * 更新页面上价格比例
+     */
     private tapUpdateItem() {
         this.updateItemPrice(document.querySelectorAll(this.option.listTag + ' ' + this.option.listPriceTag));
     }
 
     private getIncomeScale(price: number|string) {
-        if (!this.steamPrice) {
-            return 0;
+        return this.formatIncomeScale(price, this.steamPrice);
+    }
+
+    private formatIncomeScale(price: number|string, steamPrice: string|number): string {
+        if (!steamPrice) {
+            return '-';
         }
-        return (this.parseNumber(price) * 10 / this.steamIncome).toFixed(2);
+        return (this.parseNumber(price)/ (this.parseNumber(steamPrice) * this.steamIncomeScale)).toFixed(2);
     }
 
     private updateItemPrice(items: NodeListOf<Element>) {
@@ -83,20 +144,57 @@ class SteamTooler {
         if (typeof val === 'number') {
             return val;
         }
-        return parseFloat(val.match(/[\d\.]+/)[0]);
+        return parseFloat(val.toString().match(/[\d\.]+/)[0]);
     }
 
-    private appendTip(target: Node, val: any) {
+    private appendTip(target: Node, val: any, tagName = 'p') {
         const cls = 'zre-tooltip';
         const next = target.nextSibling;
         if (next && next instanceof HTMLElement && next.classList.contains(cls)) {
             next.innerText = `收益率: ${val}`;
             return;
         }
-        const tip = document.createElement('p');
+        const tip = document.createElement(tagName);
         tip.classList.add(cls);
         tip.innerText = `收益率: ${val}`;
         this.insertAfter(target, tip);
+    }
+
+    private loadSteamPrice(isSell = true) {
+        // fetch(this.option.steamUrl).then(res => {});
+        const box = ZreUtil.find(isSell ? '#market_commodity_forsale_table' : '#market_commodity_buyreqeusts_table');
+        const table = box.getElementsByTagName('table')[0];
+        const items: any[] = [];
+        ZreUtil.each(table.rows, (row, i) => {
+            if (i === 0 || i === table.rows.length - 1) {
+                return;
+            }
+            const price = row.cells[0].innerText.trim();
+            items.push({
+                currency: price.charAt(0),
+                price: this.parseNumber(price),
+                amount: this.parseNumber(row.cells[1].innerText)
+            });
+        });
+        return items;
+    }
+
+    private getSteamPrice(appid: number, hashName: string) {
+        return ZreUtil.request({
+            url: `https://steamcommunity.com/market/priceoverview/?appid=${appid}&currency=${this.currency}&market_hash_name=${hashName}`,
+            headers: {
+                "referer": `https://steamcommunity.com/market/listings/${appid}/${hashName}`,
+                "X-Requested-With": "XMLHttpRequest",
+                "Host": "steamcommunity.com",
+                "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/107.0.0.0 Safari/537.36 Edg/107.0.1418.35"
+            },
+        }).then(res => {
+            const data: any = JSON.parse(res);
+            if (data.success) {
+                return data;
+            }
+            throw new Error('');
+        });
     }
 
     private createUI() {
@@ -120,7 +218,11 @@ class SteamTooler {
                 e.preventDefault();
                 const attr = item.getAttribute('_zre-modal');
                 if (attr === 'eye') {
-                    this.tapUpdateItem();
+                    if (this.isDetailPage) {
+                        this.tapUpdateItem();
+                    } else {
+                        this.runInList();
+                    }
                     return;
                 }
                 ZreUtil.toggleClass(ZreUtil.find<HTMLDivElement>(`._zre-${attr}-modal`, target), '_zre-opened', true);
@@ -147,7 +249,7 @@ class SteamTooler {
             if (i < 1) {
                 toolItems[i].value = (this.parseNumber(toolItems[2].value) * this.steamIncomeScale * this.parseNumber(toolItems[1].value)).toFixed(2);
             } else if (i == 1) {
-                toolItems[i].value = (this.parseNumber(toolItems[0].value) / (this.parseNumber(toolItems[2].value) * this.steamIncomeScale)).toFixed(2);
+                toolItems[i].value = this.formatIncomeScale(toolItems[0].value, toolItems[2].value);
             } else {
                 toolItems[i].value = (this.parseNumber(toolItems[0].value) / this.parseNumber(toolItems[1].value) / this.steamIncomeScale).toFixed(2);
             }
@@ -210,6 +312,9 @@ class SteamTooler {
     }
 
     private createPriceTable() {
+        if (!this.isDetailPage) {
+            return '';
+        }
         return `
         <div class="_zre-dialog-box _zre-price-modal">
             <div class="_zre-dialog-header">
@@ -280,19 +385,21 @@ class SteamTooler {
         this.insertLast(current.parentNode, items);
     }
 
-    public static createAuto(auto = true): SteamTooler| undefined {
+    public static createAuto(): SteamTooler| undefined {
         const configs: ISteamSpiderConfig[] = [
             {
                 host: 'buff.163.com',
                 pathRegex: /^\/goods/,
                 steamPriceTag: '.detail-header .detail-summ .f_Strong',
+                steamUrl: '.detail-header .detail-summ a',
                 listTag: '.detail-tab-cont',
                 listPriceTag: '.t_Left .f_Strong',
             },
             {
                 host: 'www.youpin898.com',
                 pathRegex: /^\/goodInfo/,
-                steamPriceTag: '.goodInfo .f20',
+                steamPriceTag: '.goodInfo .box-c .f20',
+                steamUrl: '.goodInfo .box-c a',
                 listTag: '.tab-body',
                 listPriceTag: '.list .f20',
             }
@@ -301,10 +408,7 @@ class SteamTooler {
             if (item.host !== window.location.host) {
                 continue;
             }
-            if (item.pathRegex && item.pathRegex.test(window.location.pathname)) {
-                return new SteamTooler(item, auto);
-            }
-            return;
+            return new SteamTooler(item);
         }
         return;
     }

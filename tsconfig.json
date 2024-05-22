@@ -15,6 +15,7 @@
     "removeComments": true,
     "pretty": true,
     "strictPropertyInitialization": true,
+    "target": "ES2015",
     "module": "ES2022",
     "typeRoots": [
       "./node_modules/@types"

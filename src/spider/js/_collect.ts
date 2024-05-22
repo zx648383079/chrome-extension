@@ -18,7 +18,7 @@ class CollectProject implements ISpider {
             if (data.keywords) {
                 data.keywords = data.keywords.trim().split(',') as any;
             }
-            ZreUtil.post('navigation/admin/page/crawl', data);
+            ZreUtil.post('navigation/admin/page/crawl', data).then(_ => {});
         });
     }
 

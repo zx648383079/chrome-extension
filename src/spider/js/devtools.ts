@@ -38,7 +38,7 @@ function importBuff(request: chrome.devtools.network.Request) {
                     price: i[1]
                 }
             })
-        }, log);
+        }, log).then(_ => {});
     });
 }
 
@@ -73,7 +73,7 @@ function importCsqaq(request: chrome.devtools.network.Request) {
                         type: postData.key === 'buy_price' ? 1 : 0,
                     }
                 })
-            }, log);
+            }, log).then(_ => {});
         });
         
     });

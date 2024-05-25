@@ -15,10 +15,88 @@ class TrackerProject implements ISpider {
             case 'www.iflow.work':
             case 'iflow.work':
                 return this.renderIFlow();
+            case 'csqaq.com':
+                return this.renderQAQ();
+            case 'steamcommunity.com':
+                return this.renderSteam();
             default:
                 console.log('无相关程序');
                 return;
         }
+    }
+
+    private renderSteam() {
+        if (!window.location.pathname.startsWith('/market/search')) {
+            return;
+        }
+        const items: any[] = [];
+        ZreUtil.findAll('#searchResultsTable .market_listing_row').forEach(li => {
+            const price = ZreUtil.find('.market_listing_their_price .normal_price', li).innerText;
+            if (price.indexOf('￥') < 0) {
+                return;
+            }
+            items.push({
+                product: {
+                    name: li.getAttribute('data-hash-name')
+                },
+                channel: 'steam',
+                price: ZreUtil.parseNumber(price)
+            });
+        });
+        if (items.length < 0) {
+            return;
+        } 
+        return {
+            from: 'steam',
+            items,
+        };
+    }
+
+    private renderQAQ() {
+        if (!window.location.pathname.startsWith('/exchange')) {
+            return;
+        }
+        const items: any[] = [];
+        const table = ZreUtil.find('.ant-table-content');
+        if (table) {
+            ZreUtil.each(table.querySelector('table')?.tBodies, body => {
+                ZreUtil.each(body.rows, tr => {
+                    const tag = tr.cells[6].innerText.replace('访问', '').toLowerCase();
+                    items.push({
+                        product: {
+                            name: tr.cells[1].innerText,
+                        },
+                        price: tr.cells[2].innerText,
+                        channel: tag === 'yyyp' ? 'uuyp' : tag,
+                    })
+                });
+            });
+        } else {
+            ZreUtil.findAll<HTMLDivElement>('.ant-list-item').forEach(li => {
+                const a = li.querySelector('a')!;
+                const tag = ZreUtil.find<HTMLSpanElement>('.ant-tag', li).innerText.toLowerCase();
+                let price = 0;
+                ZreUtil.findAll('.ant-row .ant-col div', li).forEach(item => {
+                    if (item.innerText.indexOf('平台售价') >= 0) {
+                        price = ZreUtil.parseNumber(item.innerText);
+                    }
+                });
+                if (!price) {
+                    return;
+                }
+                items.push({
+                    product: {
+                        name: a.innerText.split('.', 2)[1].trim(),
+                    },
+                    price: price,
+                    channel: tag === 'yyyp' ? 'uuyp' : tag,
+                })
+            });
+        }
+        return {
+            from: 'csqaq.com',
+            items
+        };
     }
 
     private renderIFlow() {

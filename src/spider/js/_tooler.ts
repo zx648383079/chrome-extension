@@ -30,7 +30,7 @@ class SteamTooler {
         if (!target) {
             return;
         }
-        this.steamPrice = this.parseNumber(target.textContent);
+        this.steamPrice = ZreUtil.parseNumber(target.textContent);
         this.bindEvent(target as HTMLElement);
         this.tapUpdateItem();
     }
@@ -45,7 +45,7 @@ class SteamTooler {
             if (!target) {
                 return;
             }
-            this.steamPrice = this.parseNumber(target.textContent);
+            this.steamPrice = ZreUtil.parseNumber(target.textContent);
             this.bindEvent(target as HTMLElement);
             this.waitTdUpdate(this.updateItemPrice.bind(this));
         }
@@ -61,7 +61,7 @@ class SteamTooler {
         } = {};
         ZreUtil.findAll<HTMLLIElement>('#j_list_card li').forEach(li => {
             const link = li.querySelector('a');
-            const productId = this.parseNumber(link?.getAttribute('href'));
+            const productId = ZreUtil.parseNumber(link?.getAttribute('href'));
             eleMap[productId] = li;
         });
         ZreUtil.post<{
@@ -96,7 +96,7 @@ class SteamTooler {
             if (!price) {
                 return;
             }
-            this.steamPrice = this.parseNumber(price);
+            this.steamPrice = ZreUtil.parseNumber(price);
             this.tapUpdateItem();
         });
     }
@@ -116,7 +116,7 @@ class SteamTooler {
         if (!steamPrice) {
             return '-';
         }
-        return (this.parseNumber(price)/ (this.parseNumber(steamPrice) * this.steamIncomeScale)).toFixed(2);
+        return (ZreUtil.parseNumber(price)/ (ZreUtil.parseNumber(steamPrice) * this.steamIncomeScale)).toFixed(2);
     }
 
     private updateItemPrice(items: NodeListOf<Element>) {
@@ -135,16 +135,6 @@ class SteamTooler {
             cb.call(this, table.querySelectorAll(this.option.listPriceTag));
         });
         observer.observe(table, {childList: true});
-    }
-
-    private parseNumber(val: any): number {
-        if (!val) {
-            return 0;
-        }
-        if (typeof val === 'number') {
-            return val;
-        }
-        return parseFloat(val.toString().match(/[\d\.]+/)[0]);
     }
 
     private appendTip(target: Node, val: any, tagName = 'p') {
@@ -172,8 +162,8 @@ class SteamTooler {
             const price = row.cells[0].innerText.trim();
             items.push({
                 currency: price.charAt(0),
-                price: this.parseNumber(price),
-                amount: this.parseNumber(row.cells[1].innerText)
+                price: ZreUtil.parseNumber(price),
+                amount: ZreUtil.parseNumber(row.cells[1].innerText)
             });
         });
         return items;
@@ -247,11 +237,11 @@ class SteamTooler {
             }
             const i = 3 - key - target;
             if (i < 1) {
-                toolItems[i].value = (this.parseNumber(toolItems[2].value) * this.steamIncomeScale * this.parseNumber(toolItems[1].value)).toFixed(2);
+                toolItems[i].value = (ZreUtil.parseNumber(toolItems[2].value) * this.steamIncomeScale * ZreUtil.parseNumber(toolItems[1].value)).toFixed(2);
             } else if (i == 1) {
                 toolItems[i].value = this.formatIncomeScale(toolItems[0].value, toolItems[2].value);
             } else {
-                toolItems[i].value = (this.parseNumber(toolItems[0].value) / this.parseNumber(toolItems[1].value) / this.steamIncomeScale).toFixed(2);
+                toolItems[i].value = (ZreUtil.parseNumber(toolItems[0].value) / ZreUtil.parseNumber(toolItems[1].value) / this.steamIncomeScale).toFixed(2);
             }
             ZreUtil.toggleClass(toolItems[i].closest('._zre-input-header-block')!, '_zre-input-not-empty', true);
         };

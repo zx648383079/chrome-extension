@@ -43,13 +43,26 @@ class ZreUtil {
         (input as HTMLInputElement).value = val;
     }
 
-    public static each<T extends Element>(items: HTMLCollectionOf<T>, cb: (item: T, index: number) => void|false): void
-    public static each<T = HTMLElement>(items: HTMLCollectionBase, cb: (item: T, index: number) => void|false): void {
+    public static each<T extends Element>(items: HTMLCollectionOf<T>|undefined, cb: (item: T, index: number) => void|false): void
+    public static each<T = HTMLElement>(items: HTMLCollectionBase|undefined, cb: (item: T, index: number) => void|false): void {
+        if (!items) {
+            return;
+        }
         for (let index = 0; index < items.length; index++) {
             if (cb(items[index] as any, index) === false) {
                 return;
             }
         }
+    }
+
+    public static parseNumber(val: any): number {
+        if (!val) {
+            return 0;
+        }
+        if (typeof val === 'number') {
+            return val;
+        }
+        return parseFloat(val.toString().match(/[\d\.]+/)[0]);
     }
 
     public static formValue(form: HTMLFormElement, keys: string[]): Object {
